@@ -1,0 +1,17 @@
+body{
+    min-width: 100vw;
+    min-height: 100vh;
+    background-color: black;
+}
+h1{
+    color: white;
+    text-align: center;
+}
+form{
+    text-align: center;
+}
+.image.container{
+    width: 90%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit,min-max(250px,4fr));
+}
