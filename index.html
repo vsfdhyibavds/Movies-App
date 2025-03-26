@@ -3,18 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gene's Movies</title>
+    <title>Movie App</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <h1>Movies Search</h1>
-    <form action="search">
-        <input type="text" name="search" placeholder="Search for a movie...">
-        <button class="search">Search</button>
-        </form>
-        <div class="image-container">
-
+    <header>
+        <div class="container">
+            <h1 class="logo">Movie<span>Hub</span></h1>
+            <form id="form">
+                <input type="text" id="search" class="search" placeholder="Search movies...">
+                <button type="submit"><i class="fas fa-search"></i></button>
+            </form>
         </div>
-        <script src="main.js"></script>
+    </header>
+
+    <main id="main">
+        <!-- Movies will be displayed here -->
+    </main>
+
+    <div id="movie-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="movie-details">
+                <!-- Movie details will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2023 MovieHub. Powered by TMDB API.</p>
+    </footer>
+
+    <script src="main.js"></script>
 </body>
 </html>
