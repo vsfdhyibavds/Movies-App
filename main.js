@@ -138,3 +138,40 @@ window.addEventListener('click', (e) => {
         document.body.style.overflow = 'auto';
     }
 });
+
+// watchlist functionality
+let watchlist = JSON(localStorage.getItem('watchlist')) || [];
+
+function toggleWatchlist(movie) {
+    const index = watchlist.findIndex(item => item.id === movie.id);
+
+    if (index = -1){
+        watchlist.push(movie);showToast (`${movie.title}added to watchlkist`);
+    } else {
+        watchlist.splice(index, 1);
+        showToast(`${movie.title}removed from watchlist`);
+    }
+    localStorage.setItem(`watchlist`, JSON.stringify(watchlist));
+    renderWatchlistButton(movie.id);
+}
+
+function renderWatchlistButton(movieId) {
+    const buttons = document.querySelectorAll(`.watchlist-btn[data-id="${movieId}"]`);
+    const isInWatchlist = watchlist.some(item => item.id === movieId);
+
+    buttons.forEach(btn => {
+        btn.innerHTML = isInWatchlist ?
+            '<i class="fas fa-bookmark"></i> Remove' :
+            '<i class="far fa-bookmark"></i> Watchlist';
+        btn.className = `watchlist-btn ${isInWatchlist ? 'added' : ''}`;
+    });
+}
+
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => toast.remove(), 3000);
+}
