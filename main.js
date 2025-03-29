@@ -60,6 +60,16 @@ function getClassByRate(vote) {
     }
 }
 
+form.addEventListener('input', async () => {
+    const searchTerm = search.value.trim();
+    if (searchTerm) {
+        const suggestions = await fetchSuggestions(searchTerm);
+        showSuggestions(suggestions);
+    } else {
+        clearSuggestions();
+    }
+});
+
 form.addEventListener('submit', (e) => {
     e.preventDefault();
 
@@ -73,7 +83,28 @@ form.addEventListener('submit', (e) => {
     }
 });
 
-// Show movie details in modal
+async function fetchSuggestions(query) {
+    const response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=3fd2be6f0c70a2a598f084ddfb75487c&query=${query}`);
+    const data = await response.json();
+    return data.results.map(movie => movie.title);
+}
+
+function showSuggestions(suggestions) {
+    clearSuggestions();
+    suggestions.forEach(suggestion => {
+        const div = document.createElement('div');
+        div.textContent = suggestion;
+        div.addEventListener('click', () => {
+            search.value = suggestion;
+            clearSuggestions();
+        });
+        document.getElementById('autocomplete-list').appendChild(div);
+    });
+}
+
+function clearSuggestions() {
+    document.getElementById('autocomplete-list').innerHTML = '';
+}
 async function showMovieDetails(movie) {
     const { id } = movie;
     const detailsUrl = `https://api.themoviedb.org/3/movie/${id}?api_key=3fd2be6f0c70a2a598f084ddfb75487c`;
@@ -140,18 +171,19 @@ window.addEventListener('click', (e) => {
 });
 
 // watchlist functionality
-let watchlist = JSON(localStorage.getItem('watchlist')) || [];
+let watchlist = JSON.parse(localStorage.getItem('watchlist')) || [];
 
 function toggleWatchlist(movie) {
     const index = watchlist.findIndex(item => item.id === movie.id);
 
-    if (index = -1){
-        watchlist.push(movie);showToast (`${movie.title}added to watchlkist`);
+    if (index === -1) {
+        watchlist.push(movie);
+        showToast(`${movie.title} added to watchlist`);
     } else {
         watchlist.splice(index, 1);
-        showToast(`${movie.title}removed from watchlist`);
+        showToast(`${movie.title} removed from watchlist`);
     }
-    localStorage.setItem(`watchlist`, JSON.stringify(watchlist));
+    localStorage.setItem('watchlist', JSON.stringify(watchlist));
     renderWatchlistButton(movie.id);
 }
 
