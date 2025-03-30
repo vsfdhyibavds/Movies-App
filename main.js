@@ -45,7 +45,10 @@ function showMovies(movies) {
             </div>
         `;
 
-        movieEl.addEventListener('click', () => showMovieDetails(movie));
+        movieEl.addEventListener('click', () => {
+            showMovieDetails(movie);
+            addToWatchHistory(movie); // Add movie to watch history when clicked
+        });
         main.appendChild(movieEl);
     });
 }
@@ -105,6 +108,7 @@ function showSuggestions(suggestions) {
 function clearSuggestions() {
     document.getElementById('autocomplete-list').innerHTML = '';
 }
+
 async function showMovieDetails(movie) {
     const { id } = movie;
     const detailsUrl = `https://api.themoviedb.org/3/movie/${id}?api_key=3fd2be6f0c70a2a598f084ddfb75487c`;
@@ -120,6 +124,7 @@ async function showMovieDetails(movie) {
 }
 
 function displayMovieDetails(movie) {
+    displayWatchHistory(); // Update watch history display when movie details are shown
     const {
         title,
         poster_path,
@@ -154,6 +159,25 @@ function displayMovieDetails(movie) {
 
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden';
+}
+
+function addToWatchHistory(movie) {
+    let watchHistory = JSON.parse(localStorage.getItem('watchHistory')) || [];
+    watchHistory.push(movie);
+    localStorage.setItem('watchHistory', JSON.stringify(watchHistory));
+    displayWatchHistory(); // Update the watch history display
+}
+
+function displayWatchHistory() {
+    const watchHistoryContainer = document.getElementById('watch-history');
+    watchHistoryContainer.innerHTML = '';
+    const watchHistory = JSON.parse(localStorage.getItem('watchHistory')) || [];
+
+    watchHistory.forEach(movie => {
+        const div = document.createElement('div');
+        div.textContent = movie.title; // Assuming movie has a title property
+        watchHistoryContainer.appendChild(div);
+    });
 }
 
 // Close modal
