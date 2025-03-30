@@ -1,3 +1,107 @@
 {
-  "movies": []
-}
+    "movies": [
+      {
+        "id": 1,
+        "title": "The Shawshank Redemption",
+        "poster_path": "/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg",
+        "vote_average": 8.7,
+        "overview": "Framed in the 1940s for the double murder of his wife and her lover, upstanding banker Andy Dufresne begins a new life at the Shawshank prison, where he puts his accounting skills to work for an amoral warden. During his long stretch in prison, Dufresne comes to be admired by the other inmates -- including an older prisoner named Red -- for his integrity and unquenchable sense of hope.",
+        "release_date": "1994-09-23",
+        "runtime": 142,
+        "genres": [
+          {"id": 18, "name": "Drama"},
+          {"id": 80, "name": "Crime"}
+        ],
+        "tagline": "Fear can hold you prisoner. Hope can set you free.",
+        "homepage": "https://www.warnerbros.com/movies/shawshank-redemption"
+      },
+      {
+        "id": 2,
+        "title": "The Godfather",
+        "poster_path": "/3bhkrj58Vtu7enYsRolD1fZdja1.jpg",
+        "vote_average": 8.7,
+        "overview": "Spanning the years 1945 to 1955, a chronicle of the fictional Italian-American Corleone crime family. When organized crime family patriarch, Vito Corleone barely survives an attempt on his life, his youngest son, Michael steps in to take care of the would-be killers, launching a campaign of bloody revenge.",
+        "release_date": "1972-03-14",
+        "runtime": 175,
+        "genres": [
+          {"id": 18, "name": "Drama"},
+          {"id": 80, "name": "Crime"}
+        ],
+        "tagline": "An offer you can't refuse.",
+        "homepage": "https://www.paramountmovies.com/movies/the-godfather"
+      },
+      {
+        "id": 3,
+        "title": "Pulp Fiction",
+        "poster_path": "/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg",
+        "vote_average": 8.5,
+        "overview": "A burger-loving hit man, his philosophical partner, a drug-addled gangster's moll and a washed-up boxer converge in this sprawling, comedic crime caper. Their adventures unfurl in three stories that ingeniously trip back and forth in time.",
+        "release_date": "1994-09-10",
+        "runtime": 154,
+        "genres": [
+          {"id": 53, "name": "Thriller"},
+          {"id": 80, "name": "Crime"}
+        ],
+        "tagline": "Just because you are a character doesn't mean you have character.",
+        "homepage": "https://www.miramax.com/movie/pulp-fiction/"
+      },
+      {
+        "id": 4,
+        "title": "The Dark Knight",
+        "poster_path": "/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
+        "vote_average": 8.5,
+        "overview": "Batman raises the stakes in his war on crime. With the help of Lt. Jim Gordon and District Attorney Harvey Dent, Batman sets out to dismantle the remaining criminal organizations that plague the streets. The partnership proves to be effective, but they soon find themselves prey to a reign of chaos unleashed by a rising criminal mastermind known to the terrified citizens of Gotham as the Joker.",
+        "release_date": "2008-07-16",
+        "runtime": 152,
+        "genres": [
+          {"id": 18, "name": "Drama"},
+          {"id": 28, "name": "Action"},
+          {"id": 80, "name": "Crime"}
+        ],
+        "tagline": "Welcome to a world without rules.",
+        "homepage": "https://www.warnerbros.com/movies/dark-knight/"
+      },
+      {
+        "id": 5,
+        "title": "Fight Club",
+        "poster_path": "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
+        "vote_average": 8.4,
+        "overview": "A ticking-time-bomb insomniac and a slippery soap salesman channel primal male aggression into a shocking new form of therapy. Their concept catches on, with underground \"fight clubs\" forming in every town, until an eccentric gets in the way and ignites an out-of-control spiral toward oblivion.",
+        "release_date": "1999-10-15",
+        "runtime": 139,
+        "genres": [
+          {"id": 18, "name": "Drama"}
+        ],
+        "tagline": "Mischief. Mayhem. Soap.",
+        "homepage": "https://www.foxmovies.com/movies/fight-club"
+      }
+    ],
+    "watchHistory": [
+      {
+        "id": 1,
+        "title": "The Shawshank Redemption",
+        "poster_path": "/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg",
+        "timestamp": "2025-03-25T14:30:00Z"
+      },
+      {
+        "id": 3,
+        "title": "Pulp Fiction",
+        "poster_path": "/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg",
+        "timestamp": "2025-03-26T20:15:00Z"
+      }
+    ],
+    "watchlist": [
+      {
+        "id": 4,
+        "title": "The Dark Knight",
+        "poster_path": "/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
+        "added_on": "2025-03-20T10:45:00Z"
+      },
+      {
+        "id": 5,
+        "title": "Fight Club",
+        "poster_path": "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
+        "added_on": "2025-03-22T18:30:00Z"
+      }
+    ]
+  }
