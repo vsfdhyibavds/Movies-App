@@ -8,6 +8,7 @@ import {
     addToWatchHistory as addToWatchHistoryDB,
     getWatchHistory
 } from './supabase.js';
+import { signUp, signIn, signOut, onAuthStateChange } from './auth.js';
 
 const API_URL = 'https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=3fd2be6f0c70a2a598f084ddfb75487c&page=1';
 const IMG_PATH = 'https://image.tmdb.org/t/p/w1280';
@@ -23,7 +24,26 @@ const watchlistToggleBtn = document.getElementById('watchlist-toggle');
 const watchlistContainer = document.getElementById('watchlist-container');
 const themeToggleBtn = document.getElementById('theme-toggle');
 
+const authToggleBtn = document.getElementById('auth-toggle');
+const authModal = document.getElementById('auth-modal');
+const closeAuthBtn = document.getElementById('close-auth');
+const signinTab = document.getElementById('signin-tab');
+const signupTab = document.getElementById('signup-tab');
+const signinForm = document.getElementById('signin-form');
+const signupForm = document.getElementById('signup-form');
+const signinBtn = document.getElementById('signin-btn');
+const signupBtn = document.getElementById('signup-btn');
+const signinEmail = document.getElementById('signin-email');
+const signinPassword = document.getElementById('signin-password');
+const signupEmail = document.getElementById('signup-email');
+const signupPassword = document.getElementById('signup-password');
+const signupConfirm = document.getElementById('signup-confirm');
+const signinError = document.getElementById('signin-error');
+const signupError = document.getElementById('signup-error');
+const authContainer = document.getElementById('auth-container');
+
 getMovies(API_URL);
+initializeAuth();
 
 async function getMovies(url) {
     try {
@@ -347,6 +367,158 @@ window.addEventListener('click', (e) => {
 themeToggleBtn.addEventListener('click', () => {
     document.body.classList.toggle('light');
     document.querySelector('header').classList.toggle('light');
+});
+
+function initializeAuth() {
+    onAuthStateChange(async (user) => {
+        if (user) {
+            updateAuthUI(user);
+        } else {
+            updateAuthUILoggedOut();
+        }
+    });
+}
+
+function updateAuthUI(user) {
+    authContainer.innerHTML = `
+        <div class="user-display">
+            <span class="user-email">${user.email}</span>
+            <button class="auth-btn user-btn" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    `;
+
+    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+}
+
+function updateAuthUILoggedOut() {
+    authContainer.innerHTML = `
+        <button id="auth-toggle" class="auth-btn">
+            <i class="fas fa-user"></i> Sign In
+        </button>
+    `;
+
+    document.getElementById('auth-toggle').addEventListener('click', openAuthModal);
+}
+
+function openAuthModal() {
+    authModal.classList.remove('hidden');
+}
+
+function closeAuthModal() {
+    authModal.classList.add('hidden');
+    clearAuthForms();
+}
+
+function clearAuthForms() {
+    signinEmail.value = '';
+    signinPassword.value = '';
+    signupEmail.value = '';
+    signupPassword.value = '';
+    signupConfirm.value = '';
+    signinError.textContent = '';
+    signupError.textContent = '';
+}
+
+authToggleBtn.addEventListener('click', openAuthModal);
+closeAuthBtn.addEventListener('click', closeAuthModal);
+
+signinTab.addEventListener('click', () => {
+    signinTab.classList.add('active');
+    signupTab.classList.remove('active');
+    signinForm.classList.add('active');
+    signupForm.classList.remove('active');
+    signinError.textContent = '';
+});
+
+signupTab.addEventListener('click', () => {
+    signupTab.classList.add('active');
+    signinTab.classList.remove('active');
+    signupForm.classList.add('active');
+    signinForm.classList.remove('active');
+    signupError.textContent = '';
+});
+
+signinBtn.addEventListener('click', handleSignIn);
+signupBtn.addEventListener('click', handleSignUp);
+
+async function handleSignIn() {
+    const email = signinEmail.value.trim();
+    const password = signinPassword.value.trim();
+
+    if (!email || !password) {
+        signinError.textContent = 'Please fill in all fields';
+        return;
+    }
+
+    signinBtn.disabled = true;
+    signinBtn.textContent = 'Signing in...';
+
+    const result = await signIn(email, password);
+
+    if (result.success) {
+        showToast('Signed in successfully');
+        closeAuthModal();
+    } else {
+        signinError.textContent = result.error || 'Sign in failed';
+    }
+
+    signinBtn.disabled = false;
+    signinBtn.textContent = 'Sign In';
+}
+
+async function handleSignUp() {
+    const email = signupEmail.value.trim();
+    const password = signupPassword.value.trim();
+    const confirm = signupConfirm.value.trim();
+
+    if (!email || !password || !confirm) {
+        signupError.textContent = 'Please fill in all fields';
+        return;
+    }
+
+    if (password.length < 6) {
+        signupError.textContent = 'Password must be at least 6 characters';
+        return;
+    }
+
+    if (password !== confirm) {
+        signupError.textContent = 'Passwords do not match';
+        return;
+    }
+
+    signupBtn.disabled = true;
+    signupBtn.textContent = 'Creating account...';
+
+    const result = await signUp(email, password);
+
+    if (result.success) {
+        showToast('Account created successfully');
+        clearAuthForms();
+        signinTab.classList.add('active');
+        signupTab.classList.remove('active');
+        signinForm.classList.add('active');
+        signupForm.classList.remove('active');
+    } else {
+        signupError.textContent = result.error || 'Sign up failed';
+    }
+
+    signupBtn.disabled = false;
+    signupBtn.textContent = 'Sign Up';
+}
+
+async function handleLogout() {
+    const result = await signOut();
+    if (result.success) {
+        showToast('Logged out successfully');
+    }
+}
+
+window.addEventListener('click', (e) => {
+    if (e.target === authModal) {
+        closeAuthModal();
+    }
 });
 
 function showToast(message) {

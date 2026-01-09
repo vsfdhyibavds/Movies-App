@@ -21,9 +21,42 @@
                     <input type="text" id="search" class="search" placeholder="Search movies...">
                     <button type="submit"><i class="fas fa-search"></i></button>
                 </form>
+                <div id="auth-container" class="auth-container">
+                    <button id="auth-toggle" class="auth-btn">
+                        <i class="fas fa-user"></i> Sign In
+                    </button>
+                </div>
             </div>
         </div>
     </header>
+
+    <div id="auth-modal" class="auth-modal hidden">
+        <div class="auth-modal-content">
+            <div class="auth-tabs">
+                <button id="signin-tab" class="auth-tab active">Sign In</button>
+                <button id="signup-tab" class="auth-tab">Sign Up</button>
+            </div>
+
+            <div id="signin-form" class="auth-form active">
+                <h2>Sign In to Your Account</h2>
+                <input type="email" id="signin-email" placeholder="Email" class="auth-input">
+                <input type="password" id="signin-password" placeholder="Password" class="auth-input">
+                <button id="signin-btn" class="auth-submit-btn">Sign In</button>
+                <div id="signin-error" class="auth-error"></div>
+            </div>
+
+            <div id="signup-form" class="auth-form">
+                <h2>Create New Account</h2>
+                <input type="email" id="signup-email" placeholder="Email" class="auth-input">
+                <input type="password" id="signup-password" placeholder="Password (min 6 characters)" class="auth-input">
+                <input type="password" id="signup-confirm" placeholder="Confirm Password" class="auth-input">
+                <button id="signup-btn" class="auth-submit-btn">Sign Up</button>
+                <div id="signup-error" class="auth-error"></div>
+            </div>
+
+            <button id="close-auth" class="auth-close">&times;</button>
+        </div>
+    </div>
 
     <main id="main">
         <!-- Movies will be displayed here -->
