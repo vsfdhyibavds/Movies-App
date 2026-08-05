@@ -124,6 +124,108 @@ export async function getWatchHistory() {
     return data || [];
 }
 
+export async function getMovieReviews(movieId) {
+    const { data, error } = await supabase
+        .from('reviews')
+        .select('id, user_id, rating, review_text, created_at, updated_at')
+        .eq('movie_id', movieId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching reviews:', error);
+        return [];
+    }
+    return data || [];
+}
+
+export async function getUserReview(movieId) {
+    const user = await getCurrentUser();
+    if (!user) return null;
+
+    const { data, error } = await supabase
+        .from('reviews')
+        .select('id, rating, review_text, created_at')
+        .eq('user_id', user.id)
+        .eq('movie_id', movieId)
+        .maybeSingle();
+
+    if (error) {
+        console.error('Error fetching user review:', error);
+        return null;
+    }
+    return data;
+}
+
+export async function saveReview(movieId, movieTitle, posterPath, rating, reviewText) {
+    const user = await getCurrentUser();
+    if (!user) return { success: false, error: 'Please sign in to review movies' };
+
+    const { data: existing } = await supabase
+        .from('reviews')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('movie_id', movieId)
+        .maybeSingle();
+
+    if (existing) {
+        const { error } = await supabase
+            .from('reviews')
+            .update({ rating, review_text: reviewText || null, updated_at: new Date().toISOString() })
+            .eq('id', existing.id);
+
+        if (error) return { success: false, error: error.message };
+        return { success: true, action: 'updated' };
+    }
+
+    const { error } = await supabase
+        .from('reviews')
+        .insert([{
+            user_id: user.id,
+            movie_id: movieId,
+            rating,
+            review_text: reviewText || null,
+            title: movieTitle,
+            poster_path: posterPath
+        }]);
+
+    if (error) return { success: false, error: error.message };
+    return { success: true, action: 'created' };
+}
+
+export async function deleteReview(movieId) {
+    const user = await getCurrentUser();
+    if (!user) return false;
+
+    const { error } = await supabase
+        .from('reviews')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', movieId);
+
+    if (error) {
+        console.error('Error deleting review:', error);
+        return false;
+    }
+    return true;
+}
+
+export async function getUserReviews() {
+    const user = await getCurrentUser();
+    if (!user) return [];
+
+    const { data, error } = await supabase
+        .from('reviews')
+        .select('movie_id, rating, review_text, title, poster_path, created_at, updated_at')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching user reviews:', error);
+        return [];
+    }
+    return data || [];
+}
+
 function showToast(message) {
     const toast = document.createElement('div');
     toast.className = 'toast';

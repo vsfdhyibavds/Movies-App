@@ -6,7 +6,12 @@ import {
     getWatchlist,
     isInWatchlist,
     addToWatchHistory as addToWatchHistoryDB,
-    getWatchHistory
+    getWatchHistory,
+    getMovieReviews,
+    getUserReview,
+    saveReview,
+    deleteReview,
+    getUserReviews
 } from './supabase.js';
 import { signUp, signIn, signOut, onAuthStateChange } from './auth.js';
 
@@ -215,6 +220,8 @@ async function displayMovieDetails(movie) {
         await toggleWatchlist(movie, watchlistBtn);
     });
 
+    await renderReviewSection(movie);
+
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden';
 }
@@ -349,6 +356,7 @@ watchlistToggleBtn.addEventListener('click', async () => {
     if (!watchlistContainer.classList.contains('hidden')) {
         await refreshWatchHistory();
         await refreshWatchlist();
+        await refreshMyReviews();
     }
 });
 
@@ -527,4 +535,194 @@ function showToast(message) {
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
+}
+
+let currentSelectedRating = 0;
+
+async function renderReviewSection(movie) {
+    const user = await getCurrentUser();
+    const userReview = await getUserReview(movie.id);
+    const reviews = await getMovieReviews(movie.id);
+
+    const avgRating = reviews.length > 0
+        ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+        : null;
+
+    const reviewSection = document.createElement('div');
+    reviewSection.classList.add('review-section');
+
+    reviewSection.innerHTML = `
+        <h3>Rate & Review</h3>
+        ${avgRating ? `<p class="avg-rating">Community rating: <span>${avgRating}</span> / 5 (${reviews.length} review${reviews.length !== 1 ? 's' : ''})</p>` : '<p class="avg-rating">No reviews yet. Be the first!</p>'}
+        ${user ? `
+            <div class="review-form">
+                <div class="star-rating" id="star-rating">
+                    ${[1,2,3,4,5].map(i => `<i class="fas fa-star star ${userReview && userReview.rating >= i ? 'active' : ''}" data-value="${i}"></i>`).join('')}
+                </div>
+                <textarea id="review-text" placeholder="Write your review (optional)..." rows="3">${userReview ? (userReview.review_text || '') : ''}</textarea>
+                <div class="review-form-actions">
+                    <button id="submit-review-btn" class="review-submit-btn">${userReview ? 'Update Review' : 'Submit Review'}</button>
+                    ${userReview ? '<button id="delete-review-btn" class="review-delete-btn">Delete</button>' : ''}
+                </div>
+                <div id="review-error" class="auth-error"></div>
+            </div>
+        ` : '<p class="empty-message">Sign in to leave a review</p>'}
+        <div class="community-reviews" id="community-reviews"></div>
+    `;
+
+    movieDetails.appendChild(reviewSection);
+
+    if (user) {
+        currentSelectedRating = userReview ? userReview.rating : 0;
+
+        const stars = reviewSection.querySelectorAll('.star');
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                currentSelectedRating = parseInt(star.dataset.value);
+                stars.forEach(s => {
+                    if (parseInt(s.dataset.value) <= currentSelectedRating) {
+                        s.classList.add('active');
+                    } else {
+                        s.classList.remove('active');
+                    }
+                });
+            });
+
+            star.addEventListener('mouseenter', () => {
+                const hoverValue = parseInt(star.dataset.value);
+                stars.forEach(s => {
+                    if (parseInt(s.dataset.value) <= hoverValue) {
+                        s.classList.add('hover');
+                    } else {
+                        s.classList.remove('hover');
+                    }
+                });
+            });
+        });
+
+        const starContainer = reviewSection.querySelector('#star-rating');
+        starContainer.addEventListener('mouseleave', () => {
+            stars.forEach(s => s.classList.remove('hover'));
+        });
+
+        const submitBtn = reviewSection.querySelector('#submit-review-btn');
+        submitBtn.addEventListener('click', async () => {
+            if (currentSelectedRating === 0) {
+                reviewSection.querySelector('#review-error').textContent = 'Please select a star rating';
+                return;
+            }
+
+            const reviewText = reviewSection.querySelector('#review-text').value.trim();
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+
+            const result = await saveReview(movie.id, movie.title, movie.poster_path, currentSelectedRating, reviewText);
+
+            if (result.success) {
+                showToast(result.action === 'created' ? 'Review posted!' : 'Review updated!');
+                await renderReviewSection(movie);
+            } else {
+                reviewSection.querySelector('#review-error').textContent = result.error || 'Failed to save review';
+                submitBtn.disabled = false;
+                submitBtn.textContent = userReview ? 'Update Review' : 'Submit Review';
+            }
+        });
+
+        const deleteBtn = reviewSection.querySelector('#delete-review-btn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', async () => {
+                const success = await deleteReview(movie.id);
+                if (success) {
+                    showToast('Review deleted');
+                    await renderReviewSection(movie);
+                } else {
+                    reviewSection.querySelector('#review-error').textContent = 'Failed to delete review';
+                }
+            });
+        }
+    }
+
+    renderCommunityReviews(reviews, user, movie.id);
+}
+
+function renderCommunityReviews(reviews, currentUser, movieId) {
+    const container = document.getElementById('community-reviews');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (reviews.length === 0) {
+        container.innerHTML = '<p class="empty-message">No community reviews yet</p>';
+        return;
+    }
+
+    reviews.forEach(review => {
+        const isOwn = currentUser && review.user_id === currentUser.id;
+ const reviewEl = document.createElement('div');
+        reviewEl.classList.add('community-review');
+        if (isOwn) reviewEl.classList.add('own-review');
+
+        const stars = [1,2,3,4,5].map(i =>
+            `<i class="fas fa-star ${i <= review.rating ? 'active' : ''}"></i>`
+        ).join('');
+
+        const dateStr = new Date(review.updated_at || review.created_at).toLocaleDateString();
+
+        reviewEl.innerHTML = `
+            <div class="review-header">
+                <div class="review-stars">${stars}</div>
+                <span class="review-author">${isOwn ? 'You' : 'User'}</span>
+                <span class="review-date">${dateStr}</span>
+            </div>
+            ${review.review_text ? `<p class="review-text">${escapeHtml(review.review_text)}</p>` : '<p class="review-text empty">No written review</p>'}
+        `;
+
+        container.appendChild(reviewEl);
+    });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+async function refreshMyReviews() {
+    const reviews = await getUserReviews();
+    const container = document.getElementById('my-reviews');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (reviews.length === 0) {
+        container.innerHTML = '<p class="empty-message">No reviews yet</p>';
+        return;
+    }
+
+    reviews.forEach(item => {
+        const reviewItem = document.createElement('div');
+        reviewItem.classList.add('watchlist-item');
+        const stars = [1,2,3,4,5].map(i =>
+            `<i class="fas fa-star ${i <= item.rating ? 'active' : ''}"></i>`
+        ).join('');
+
+        reviewItem.innerHTML = `
+            <img src="${IMG_PATH + item.poster_path}" alt="${item.title}">
+            <div class="watchlist-item-info">
+                <h4>${item.title}</h4>
+                <div class="review-stars-small">${stars}</div>
+            </div>
+        `;
+
+        reviewItem.addEventListener('click', async () => {
+            const movie = {
+                id: item.movie_id,
+                title: item.title,
+                poster_path: item.poster_path
+            };
+            await showMovieDetails(movie);
+        });
+
+        container.appendChild(reviewItem);
+    });
 }
