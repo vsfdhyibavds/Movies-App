@@ -751,6 +751,136 @@ body.light .auth-form h2 {
     color: #000000;
 }
 
+body.light .movie {
+    background-color: #f0f0f0;
+}
+
+body.light .movie-info span {
+    background-color: #e0e0e0;
+}
+
+body.light .overview {
+    background-color: rgba(255, 255, 255, 0.95);
+    color: #000;
+}
+
+body.light .modal-content {
+    background-color: #f5f5f5;
+    color: #000;
+}
+
+body.light .close {
+    color: #666;
+}
+
+body.light .close:hover {
+    color: #000;
+}
+
+body.light .movie-detail-info .tagline {
+    color: #666;
+}
+
+body.light footer {
+    background-color: #f0f0f0;
+    color: #666;
+}
+
+body.light .watchlist-action-btn {
+    background-color: #e0e0e0;
+    color: #000;
+}
+
+body.light .watchlist-action-btn:hover {
+    background-color: #d0d0d0;
+}
+
+body.light .empty-message {
+    color: #666;
+}
+
+body.light .watchlist-container {
+    background-color: #f5f5f5;
+    color: #000;
+}
+
+body.light .watchlist-container h2 {
+    border-bottom-color: #e0e0e0;
+}
+
+body.light .watchlist-item {
+    background-color: #e0e0e0;
+}
+
+body.light .watchlist-item:hover {
+    background-color: #d0d0d0;
+}
+
+body.light .watchlist-item-info p {
+    color: #666;
+}
+
+body.light .watchlist-btn,
+body.light .theme-btn,
+body.light .auth-btn,
+body.light .logout-btn {
+    background-color: #e0e0e0;
+    color: #000;
+}
+
+body.light .watchlist-btn:hover,
+body.light .theme-btn:hover,
+body.light .auth-btn:hover,
+body.light .logout-btn:hover {
+    background-color: #d0d0d0;
+}
+
+body.light #search {
+    background-color: #e0e0e0;
+    color: #000;
+}
+
+body.light .autocomplete-items {
+    background-color: #e0e0e0;
+}
+
+body.light .autocomplete-items div {
+    border-bottom-color: rgba(0,0,0,0.1);
+}
+
+body.light .autocomplete-items div:hover {
+    background-color: #d0d0d0;
+}
+
+body.light .toast {
+    background-color: #e50914;
+    color: white;
+}
+
+body.light .review-stars .fa-star,
+body.light .review-stars-small .fa-star,
+body.light .star-rating .star {
+    color: #ccc;
+}
+
+body.light .review-author {
+    color: #e50914;
+}
+
+body.light .review-text.empty {
+    color: #999;
+}
+
+body.light .review-delete-btn {
+    color: #c0392b;
+    border-color: #c0392b;
+}
+
+body.light .review-delete-btn:hover {
+    background-color: #c0392b;
+    color: white;
+}
+
 /* Review & Rating Styles */
 .review-section {
     margin-top: 20px;

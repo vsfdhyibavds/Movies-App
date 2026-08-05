@@ -18,6 +18,11 @@ import { signUp, signIn, signOut, onAuthStateChange } from './auth.js';
 const API_URL = 'https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=3fd2be6f0c70a2a598f084ddfb75487c&page=1';
 const IMG_PATH = 'https://image.tmdb.org/t/p/w1280';
 const SEARCH_API = 'https://api.themoviedb.org/3/search/movie?api_key=3fd2be6f0c70a2a598f084ddfb75487c&query="';
+const PLACEHOLDER_IMG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect fill="%231a1a2e" width="300" height="450"/><text x="50%" y="50%" fill="%23666" font-family="sans-serif" font-size="18" text-anchor="middle" dominant-baseline="middle">No Image</text></svg>';
+
+function getPosterUrl(posterPath) {
+    return posterPath ? IMG_PATH + posterPath : PLACEHOLDER_IMG;
+}
 
 const main = document.getElementById('main');
 const form = document.getElementById('form');
@@ -73,7 +78,7 @@ async function showMovies(movies) {
         const inWatchlist = await isInWatchlist(id);
 
         movieEl.innerHTML = `
-            <img src="${IMG_PATH + poster_path}" alt="${title}">
+            <img src="${getPosterUrl(poster_path)}" alt="${title}" onerror="this.src='${PLACEHOLDER_IMG}'">
             <div class="movie-info">
                 <h3>${title}</h3>
                 <span class="${getClassByRate(vote_average)}">${vote_average.toFixed(1)}</span>
@@ -114,14 +119,18 @@ function getClassByRate(vote) {
     }
 }
 
-form.addEventListener('input', async () => {
+let searchDebounceTimer;
+form.addEventListener('input', () => {
+    clearTimeout(searchDebounceTimer);
     const searchTerm = search.value.trim();
-    if (searchTerm) {
+    if (!searchTerm) {
+        clearSuggestions();
+        return;
+    }
+    searchDebounceTimer = setTimeout(async () => {
         const suggestions = await fetchSuggestions(searchTerm);
         showSuggestions(suggestions);
-    } else {
-        clearSuggestions();
-    }
+    }, 300);
 });
 
 form.addEventListener('submit', (e) => {
@@ -193,7 +202,7 @@ async function displayMovieDetails(movie) {
 
     movieDetails.innerHTML = `
         <div class="movie-detail-header">
-            <img src="${IMG_PATH + poster_path}" alt="${title}" class="movie-detail-poster">
+            <img src="${getPosterUrl(poster_path)}" alt="${title}" class="movie-detail-poster" onerror="this.src='${PLACEHOLDER_IMG}'">
             <div class="movie-detail-info">
                 <h2>${title} <span class="${getClassByRate(vote_average)}">${vote_average.toFixed(1)}</span></h2>
                 ${tagline ? `<p class="tagline">"${tagline}"</p>` : ''}
@@ -281,7 +290,7 @@ async function refreshWatchHistory() {
         const historyItem = document.createElement('div');
         historyItem.classList.add('watchlist-item');
         historyItem.innerHTML = `
-            <img src="${IMG_PATH + item.poster_path}" alt="${item.title}">
+            <img src="${getPosterUrl(item.poster_path)}" alt="${item.title}" onerror="this.src='${PLACEHOLDER_IMG}'">
             <div class="watchlist-item-info">
                 <h4>${item.title}</h4>
                 <p>Watched: ${new Date(item.watched_at).toLocaleDateString()}</p>
@@ -309,7 +318,7 @@ async function refreshWatchlist() {
         const watchlistItem = document.createElement('div');
         watchlistItem.classList.add('watchlist-item');
         watchlistItem.innerHTML = `
-            <img src="${IMG_PATH + item.poster_path}" alt="${item.title}">
+            <img src="${getPosterUrl(item.poster_path)}" alt="${item.title}" onerror="this.src='${PLACEHOLDER_IMG}'">
             <div class="watchlist-item-info">
                 <h4>${item.title}</h4>
                 <p>Rating: ${item.vote_average.toFixed(1)}</p>
@@ -372,9 +381,16 @@ window.addEventListener('click', (e) => {
     }
 });
 
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'light') {
+    document.body.classList.add('light');
+    document.querySelector('header').classList.add('light');
+}
+
 themeToggleBtn.addEventListener('click', () => {
-    document.body.classList.toggle('light');
+    const isLight = document.body.classList.toggle('light');
     document.querySelector('header').classList.toggle('light');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
 });
 
 function initializeAuth() {
@@ -540,6 +556,9 @@ function showToast(message) {
 let currentSelectedRating = 0;
 
 async function renderReviewSection(movie) {
+    const existingSection = movieDetails.querySelector('.review-section');
+    if (existingSection) existingSection.remove();
+
     const user = await getCurrentUser();
     const userReview = await getUserReview(movie.id);
     const reviews = await getMovieReviews(movie.id);
@@ -707,7 +726,7 @@ async function refreshMyReviews() {
         ).join('');
 
         reviewItem.innerHTML = `
-            <img src="${IMG_PATH + item.poster_path}" alt="${item.title}">
+            <img src="${getPosterUrl(item.poster_path)}" alt="${item.title}" onerror="this.src='${PLACEHOLDER_IMG}'">
             <div class="watchlist-item-info">
                 <h4>${item.title}</h4>
                 <div class="review-stars-small">${stars}</div>
