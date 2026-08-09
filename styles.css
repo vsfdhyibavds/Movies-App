@@ -881,6 +881,40 @@ body.light .review-delete-btn:hover {
     color: white;
 }
 
+/* Loading & Error States */
+.loading-state,
+.error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    width: 100%;
+    padding: 60px 20px;
+    color: #aaa;
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.loading-state i {
+    font-size: 2rem;
+    color: #e50914;
+}
+
+.error-state i {
+    font-size: 2rem;
+    color: #666;
+}
+
+.error-state p {
+    max-width: 400px;
+}
+
+body.light .loading-state,
+body.light .error-state {
+    color: #666;
+}
+
 /* Review & Rating Styles */
 .review-section {
     margin-top: 20px;

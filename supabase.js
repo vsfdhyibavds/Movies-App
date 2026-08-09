@@ -88,7 +88,26 @@ export async function addToWatchHistory(movie) {
     const user = await getCurrentUser();
     if (!user) return false;
 
-    const { data, error } = await supabase
+    const { data: existing } = await supabase
+        .from('watch_history')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('movie_id', movie.id)
+        .maybeSingle();
+
+    if (existing) {
+        const { error } = await supabase
+            .from('watch_history')
+            .update({ watched_at: new Date().toISOString() })
+            .eq('id', existing.id);
+        if (error) {
+            console.error('Error updating watch history:', error);
+            return false;
+        }
+        return true;
+    }
+
+    const { error } = await supabase
         .from('watch_history')
         .insert([
             {
@@ -226,7 +245,7 @@ export async function getUserReviews() {
     return data || [];
 }
 
-function showToast(message) {
+export function showToast(message) {
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.textContent = message;

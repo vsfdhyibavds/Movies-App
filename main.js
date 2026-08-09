@@ -11,7 +11,8 @@ import {
     getUserReview,
     saveReview,
     deleteReview,
-    getUserReviews
+    getUserReviews,
+    showToast
 } from './supabase.js';
 import { signUp, signIn, signOut, onAuthStateChange } from './auth.js';
 
@@ -22,6 +23,16 @@ const PLACEHOLDER_IMG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2
 
 function getPosterUrl(posterPath) {
     return posterPath ? IMG_PATH + posterPath : PLACEHOLDER_IMG;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = String(text ?? '');
+    return div.innerHTML;
+}
+
+function escapeAttr(text) {
+    return String(text ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 const main = document.getElementById('main');
@@ -55,13 +66,28 @@ const authContainer = document.getElementById('auth-container');
 getMovies(API_URL);
 initializeAuth();
 
+function showLoading() {
+    main.innerHTML = '<div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Loading movies...</div>';
+}
+
+function showError(message) {
+    main.innerHTML = `<div class="error-state"><i class="fas fa-exclamation-circle"></i><p>${escapeHtml(message)}</p></div>`;
+}
+
 async function getMovies(url) {
+    showLoading();
     try {
         const res = await fetch(url);
+        if (!res.ok) throw new Error(`Failed to load movies (${res.status})`);
         const data = await res.json();
+        if (!data.results || data.results.length === 0) {
+            main.innerHTML = '<div class="error-state"><i class="fas fa-film"></i><p>No movies found. Try a different search.</p></div>';
+            return;
+        }
         showMovies(data.results);
     } catch (err) {
         console.error('Error fetching movies:', err);
+        showError('Could not load movies. Please check your connection and try again.');
     }
 }
 
@@ -76,16 +102,19 @@ async function showMovies(movies) {
         movieEl.dataset.id = id;
 
         const inWatchlist = await isInWatchlist(id);
+        const safeTitle = escapeHtml(title);
+        const safeAlt = escapeAttr(title);
+        const safeOverview = escapeHtml(overview || 'No overview available.');
 
         movieEl.innerHTML = `
-            <img src="${getPosterUrl(poster_path)}" alt="${title}" onerror="this.src='${PLACEHOLDER_IMG}'">
+            <img src="${getPosterUrl(poster_path)}" alt="${safeAlt}" onerror="this.src='${PLACEHOLDER_IMG}'">
             <div class="movie-info">
-                <h3>${title}</h3>
+                <h3>${safeTitle}</h3>
                 <span class="${getClassByRate(vote_average)}">${vote_average.toFixed(1)}</span>
             </div>
             <div class="overview">
                 <h3>Overview</h3>
-                ${overview || 'No overview available.'}
+                ${safeOverview}
                 <div class="movie-actions">
                     <button class="watchlist-action-btn ${inWatchlist ? 'added' : ''}" data-movie-id="${id}">
                         <i class="fas fa-bookmark"></i> ${inWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
@@ -139,16 +168,14 @@ form.addEventListener('submit', (e) => {
     const searchTerm = search.value.trim();
 
     if(searchTerm && searchTerm !== '') {
-        getMovies(SEARCH_API + searchTerm);
+        getMovies(SEARCH_API + encodeURIComponent(searchTerm));
         search.value = '';
         clearSuggestions();
-    } else {
-        window.location.reload();
     }
 });
 
 async function fetchSuggestions(query) {
-    const response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=3fd2be6f0c70a2a598f084ddfb75487c&query=${query}`);
+    const response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=3fd2be6f0c70a2a598f084ddfb75487c&query=${encodeURIComponent(query)}`);
     const data = await response.json();
     return data.results.slice(0, 5).map(movie => movie.title);
 }
@@ -199,19 +226,27 @@ async function displayMovieDetails(movie) {
     } = movie;
 
     const inWatchlist = await isInWatchlist(id);
+    const safeTitle = escapeHtml(title);
+    const safeAlt = escapeAttr(title);
+    const safeTagline = escapeHtml(tagline);
+    const safeOverview = escapeHtml(overview || 'No overview available.');
+    const safeReleaseDate = escapeHtml(release_date || 'Unknown');
+    const safeRuntime = runtime ? `${runtime} minutes` : 'Unknown';
+    const safeHomepage = homepage ? escapeAttr(homepage) : '';
+    const safeHomepageDisplay = homepage ? escapeHtml(homepage) : '';
 
     movieDetails.innerHTML = `
         <div class="movie-detail-header">
-            <img src="${getPosterUrl(poster_path)}" alt="${title}" class="movie-detail-poster" onerror="this.src='${PLACEHOLDER_IMG}'">
+            <img src="${getPosterUrl(poster_path)}" alt="${safeAlt}" class="movie-detail-poster" onerror="this.src='${PLACEHOLDER_IMG}'">
             <div class="movie-detail-info">
-                <h2>${title} <span class="${getClassByRate(vote_average)}">${vote_average.toFixed(1)}</span></h2>
-                ${tagline ? `<p class="tagline">"${tagline}"</p>` : ''}
-                <p><strong>Release Date:</strong> ${release_date}</p>
-                <p><strong>Runtime:</strong> ${runtime} minutes</p>
+                <h2>${safeTitle} <span class="${getClassByRate(vote_average)}">${vote_average.toFixed(1)}</span></h2>
+                ${tagline ? `<p class="tagline">"${safeTagline}"</p>` : ''}
+                <p><strong>Release Date:</strong> ${safeReleaseDate}</p>
+                <p><strong>Runtime:</strong> ${safeRuntime}</p>
                 <div class="genres">
-                    ${genres.map(genre => `<span class="genre">${genre.name}</span>`).join('')}
+                    ${(genres || []).map(genre => `<span class="genre">${escapeHtml(genre.name)}</span>`).join('')}
                 </div>
-                ${homepage ? `<p><strong>Website:</strong> <a href="${homepage}" target="_blank">${homepage}</a></p>` : ''}
+                ${homepage ? `<p><strong>Website:</strong> <a href="${safeHomepage}" target="_blank" rel="noopener noreferrer">${safeHomepageDisplay}</a></p>` : ''}
                 <button class="watchlist-action-btn ${inWatchlist ? 'added' : ''}" data-movie-id="${id}">
                     <i class="fas fa-bookmark"></i> ${inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
                 </button>
@@ -219,7 +254,7 @@ async function displayMovieDetails(movie) {
         </div>
         <div class="movie-detail-overview">
             <h3>Overview</h3>
-            <p>${overview || 'No overview available.'}</p>
+            <p>${safeOverview}</p>
         </div>
     `;
 
@@ -290,9 +325,9 @@ async function refreshWatchHistory() {
         const historyItem = document.createElement('div');
         historyItem.classList.add('watchlist-item');
         historyItem.innerHTML = `
-            <img src="${getPosterUrl(item.poster_path)}" alt="${item.title}" onerror="this.src='${PLACEHOLDER_IMG}'">
+            <img src="${getPosterUrl(item.poster_path)}" alt="${escapeAttr(item.title)}" onerror="this.src='${PLACEHOLDER_IMG}'">
             <div class="watchlist-item-info">
-                <h4>${item.title}</h4>
+                <h4>${escapeHtml(item.title)}</h4>
                 <p>Watched: ${new Date(item.watched_at).toLocaleDateString()}</p>
             </div>
         `;
@@ -318,9 +353,9 @@ async function refreshWatchlist() {
         const watchlistItem = document.createElement('div');
         watchlistItem.classList.add('watchlist-item');
         watchlistItem.innerHTML = `
-            <img src="${getPosterUrl(item.poster_path)}" alt="${item.title}" onerror="this.src='${PLACEHOLDER_IMG}'">
+            <img src="${getPosterUrl(item.poster_path)}" alt="${escapeAttr(item.title)}" onerror="this.src='${PLACEHOLDER_IMG}'">
             <div class="watchlist-item-info">
-                <h4>${item.title}</h4>
+                <h4>${escapeHtml(item.title)}</h4>
                 <p>Rating: ${item.vote_average.toFixed(1)}</p>
             </div>
             <button class="remove-from-watchlist" data-movie-id="${item.movie_id}">
@@ -406,7 +441,7 @@ function initializeAuth() {
 function updateAuthUI(user) {
     authContainer.innerHTML = `
         <div class="user-display">
-            <span class="user-email">${user.email}</span>
+            <span class="user-email">${escapeHtml(user.email)}</span>
             <button class="auth-btn user-btn" id="logout-btn">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </button>
@@ -545,14 +580,6 @@ window.addEventListener('click', (e) => {
     }
 });
 
-function showToast(message) {
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-}
-
 let currentSelectedRating = 0;
 
 async function renderReviewSection(movie) {
@@ -578,7 +605,7 @@ async function renderReviewSection(movie) {
                 <div class="star-rating" id="star-rating">
                     ${[1,2,3,4,5].map(i => `<i class="fas fa-star star ${userReview && userReview.rating >= i ? 'active' : ''}" data-value="${i}"></i>`).join('')}
                 </div>
-                <textarea id="review-text" placeholder="Write your review (optional)..." rows="3">${userReview ? (userReview.review_text || '') : ''}</textarea>
+                <textarea id="review-text" placeholder="Write your review (optional)..." rows="3">${userReview ? escapeHtml(userReview.review_text || '') : ''}</textarea>
                 <div class="review-form-actions">
                     <button id="submit-review-btn" class="review-submit-btn">${userReview ? 'Update Review' : 'Submit Review'}</button>
                     ${userReview ? '<button id="delete-review-btn" class="review-delete-btn">Delete</button>' : ''}
@@ -700,11 +727,7 @@ function renderCommunityReviews(reviews, currentUser, movieId) {
     });
 }
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+
 
 async function refreshMyReviews() {
     const reviews = await getUserReviews();
@@ -726,9 +749,9 @@ async function refreshMyReviews() {
         ).join('');
 
         reviewItem.innerHTML = `
-            <img src="${getPosterUrl(item.poster_path)}" alt="${item.title}" onerror="this.src='${PLACEHOLDER_IMG}'">
+            <img src="${getPosterUrl(item.poster_path)}" alt="${escapeAttr(item.title)}" onerror="this.src='${PLACEHOLDER_IMG}'">
             <div class="watchlist-item-info">
-                <h4>${item.title}</h4>
+                <h4>${escapeHtml(item.title)}</h4>
                 <div class="review-stars-small">${stars}</div>
             </div>
         `;
