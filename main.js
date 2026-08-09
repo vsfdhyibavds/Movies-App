@@ -107,7 +107,7 @@ async function showMovies(movies) {
         const safeOverview = escapeHtml(overview || 'No overview available.');
 
         movieEl.innerHTML = `
-            <img src="${getPosterUrl(poster_path)}" alt="${safeAlt}" onerror="this.src='${PLACEHOLDER_IMG}'">
+            <img src="${getPosterUrl(poster_path)}" alt="${safeAlt}">
             <div class="movie-info">
                 <h3>${safeTitle}</h3>
                 <span class="${getClassByRate(vote_average)}">${vote_average.toFixed(1)}</span>
@@ -133,6 +133,9 @@ async function showMovies(movies) {
             await showMovieDetails(movie);
             await addToWatchHistory(movie);
         });
+
+        const img = movieEl.querySelector('img');
+        img.addEventListener('error', () => { img.src = PLACEHOLDER_IMG; });
 
         main.appendChild(movieEl);
     }
@@ -237,7 +240,7 @@ async function displayMovieDetails(movie) {
 
     movieDetails.innerHTML = `
         <div class="movie-detail-header">
-            <img src="${getPosterUrl(poster_path)}" alt="${safeAlt}" class="movie-detail-poster" onerror="this.src='${PLACEHOLDER_IMG}'">
+            <img src="${getPosterUrl(poster_path)}" alt="${safeAlt}" class="movie-detail-poster">
             <div class="movie-detail-info">
                 <h2>${safeTitle} <span class="${getClassByRate(vote_average)}">${vote_average.toFixed(1)}</span></h2>
                 ${tagline ? `<p class="tagline">"${safeTagline}"</p>` : ''}
@@ -257,6 +260,9 @@ async function displayMovieDetails(movie) {
             <p>${safeOverview}</p>
         </div>
     `;
+
+    const detailImg = movieDetails.querySelector('.movie-detail-poster');
+    detailImg.addEventListener('error', function() { this.src = PLACEHOLDER_IMG; });
 
     const watchlistBtn = movieDetails.querySelector('.watchlist-action-btn');
     watchlistBtn.addEventListener('click', async (e) => {
@@ -325,12 +331,13 @@ async function refreshWatchHistory() {
         const historyItem = document.createElement('div');
         historyItem.classList.add('watchlist-item');
         historyItem.innerHTML = `
-            <img src="${getPosterUrl(item.poster_path)}" alt="${escapeAttr(item.title)}" onerror="this.src='${PLACEHOLDER_IMG}'">
+            <img src="${getPosterUrl(item.poster_path)}" alt="${escapeAttr(item.title)}">
             <div class="watchlist-item-info">
                 <h4>${escapeHtml(item.title)}</h4>
                 <p>Watched: ${new Date(item.watched_at).toLocaleDateString()}</p>
             </div>
         `;
+        historyItem.querySelector('img').addEventListener('error', function() { this.src = PLACEHOLDER_IMG; });
         historyItem.addEventListener('click', async () => {
             const movie = { id: item.movie_id, title: item.title, poster_path: item.poster_path };
             await showMovieDetails(movie);
@@ -353,7 +360,7 @@ async function refreshWatchlist() {
         const watchlistItem = document.createElement('div');
         watchlistItem.classList.add('watchlist-item');
         watchlistItem.innerHTML = `
-            <img src="${getPosterUrl(item.poster_path)}" alt="${escapeAttr(item.title)}" onerror="this.src='${PLACEHOLDER_IMG}'">
+            <img src="${getPosterUrl(item.poster_path)}" alt="${escapeAttr(item.title)}">
             <div class="watchlist-item-info">
                 <h4>${escapeHtml(item.title)}</h4>
                 <p>Rating: ${item.vote_average.toFixed(1)}</p>
@@ -362,6 +369,7 @@ async function refreshWatchlist() {
                 <i class="fas fa-times"></i>
             </button>
         `;
+        watchlistItem.querySelector('img').addEventListener('error', function() { this.src = PLACEHOLDER_IMG; });
 
         const removeBtn = watchlistItem.querySelector('.remove-from-watchlist');
         removeBtn.addEventListener('click', async (e) => {
@@ -749,12 +757,13 @@ async function refreshMyReviews() {
         ).join('');
 
         reviewItem.innerHTML = `
-            <img src="${getPosterUrl(item.poster_path)}" alt="${escapeAttr(item.title)}" onerror="this.src='${PLACEHOLDER_IMG}'">
+            <img src="${getPosterUrl(item.poster_path)}" alt="${escapeAttr(item.title)}">
             <div class="watchlist-item-info">
                 <h4>${escapeHtml(item.title)}</h4>
                 <div class="review-stars-small">${stars}</div>
             </div>
         `;
+        reviewItem.querySelector('img').addEventListener('error', function() { this.src = PLACEHOLDER_IMG; });
 
         reviewItem.addEventListener('click', async () => {
             const movie = {
