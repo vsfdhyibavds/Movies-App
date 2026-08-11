@@ -437,11 +437,21 @@ themeToggleBtn.addEventListener('click', () => {
 });
 
 function initializeAuth() {
-    onAuthStateChange(async (user) => {
+    onAuthStateChange(async (user, event) => {
         if (user) {
             updateAuthUI(user);
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                await refreshWatchlist();
+                await refreshWatchHistory();
+                await refreshMyReviews();
+            }
         } else {
             updateAuthUILoggedOut();
+            if (event === 'SIGNED_OUT') {
+                await refreshWatchlist();
+                await refreshWatchHistory();
+                await refreshMyReviews();
+            }
         }
     });
 }
@@ -562,11 +572,8 @@ async function handleSignUp() {
 
     if (result.success) {
         showToast('Account created successfully');
+        closeAuthModal();
         clearAuthForms();
-        signinTab.classList.add('active');
-        signupTab.classList.remove('active');
-        signinForm.classList.add('active');
-        signupForm.classList.remove('active');
     } else {
         signupError.textContent = result.error || 'Sign up failed';
     }

@@ -38,6 +38,8 @@ export async function signOut() {
 
 export function onAuthStateChange(callback) {
     return supabase.auth.onAuthStateChange((event, session) => {
-        callback(session?.user || null);
+        (async () => {
+            await callback(session?.user || null, event);
+        })();
     });
 }
