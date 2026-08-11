@@ -16,9 +16,10 @@ import {
 } from './supabase.js';
 import { signUp, signIn, signOut, onAuthStateChange } from './auth.js';
 
-const API_URL = 'https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=3fd2be6f0c70a2a598f084ddfb75487c&page=1';
+const TMDB_PROXY = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tmdb-proxy`;
+const API_URL = `${TMDB_PROXY}/discover/movie?sort_by=popularity.desc&page=1`;
 const IMG_PATH = 'https://image.tmdb.org/t/p/w1280';
-const SEARCH_API = 'https://api.themoviedb.org/3/search/movie?api_key=3fd2be6f0c70a2a598f084ddfb75487c&query="';
+const SEARCH_API = `${TMDB_PROXY}/search/movie?query="`;
 const PLACEHOLDER_IMG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect fill="%231a1a2e" width="300" height="450"/><text x="50%" y="50%" fill="%23666" font-family="sans-serif" font-size="18" text-anchor="middle" dominant-baseline="middle">No Image</text></svg>';
 
 function getPosterUrl(posterPath) {
@@ -178,7 +179,7 @@ form.addEventListener('submit', (e) => {
 });
 
 async function fetchSuggestions(query) {
-    const response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=3fd2be6f0c70a2a598f084ddfb75487c&query=${encodeURIComponent(query)}`);
+    const response = await fetch(`${TMDB_PROXY}/search/movie?query=${encodeURIComponent(query)}`);
     const data = await response.json();
     return data.results.slice(0, 5).map(movie => movie.title);
 }
@@ -203,7 +204,7 @@ function clearSuggestions() {
 
 async function showMovieDetails(movie) {
     const { id } = movie;
-    const detailsUrl = `https://api.themoviedb.org/3/movie/${id}?api_key=3fd2be6f0c70a2a598f084ddfb75487c`;
+    const detailsUrl = `${TMDB_PROXY}/movie/${id}`;
 
     try {
         const res = await fetch(detailsUrl);
