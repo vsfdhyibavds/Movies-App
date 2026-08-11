@@ -578,7 +578,7 @@ footer {
 }
 
 .auth-modal {
-    display: none;
+    display: flex;
     position: fixed;
     z-index: 300;
     left: 0;
