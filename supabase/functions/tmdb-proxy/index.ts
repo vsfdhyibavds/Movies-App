@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
+const TMDB_IMG_BASE = "https://image.tmdb.org";
 const API_KEY = "3fd2be6f0c70a2a598f084ddfb75487c";
 
 const corsHeaders = {
@@ -17,14 +18,32 @@ Deno.serve(async (req: Request) => {
   try {
     const url = new URL(req.url);
     const path = url.pathname.replace(/^\/tmdb-proxy/, "");
-    const queryParams = new URLSearchParams(url.search);
 
+    // Image proxy: /tmdb-proxy/img/t/p/w1280/<path>
+    if (path.startsWith("/img/")) {
+      const imgPath = path.replace(/^\/img/, "");
+      const imgUrl = `${TMDB_IMG_BASE}${imgPath}`;
+      const imgRes = await fetch(imgUrl);
+      if (!imgRes.ok) {
+        return new Response("Image fetch failed", {
+          status: imgRes.status,
+          headers: { ...corsHeaders, "Content-Type": "text/plain" },
+        });
+      }
+      const contentType = imgRes.headers.get("Content-Type") || "image/jpeg";
+      return new Response(imgRes.body, {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": contentType, "Cache-Control": "public, max-age=86400" },
+      });
+    }
+
+    // JSON API proxy
+    const queryParams = new URLSearchParams(url.search);
     if (!queryParams.has("api_key")) {
       queryParams.set("api_key", API_KEY);
     }
 
     const tmdbUrl = `${TMDB_BASE}${path}?${queryParams.toString()}`;
-
     const response = await fetch(tmdbUrl, {
       headers: { "Accept": "application/json" },
     });

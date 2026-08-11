@@ -18,7 +18,7 @@ import { signUp, signIn, signOut, onAuthStateChange } from './auth.js';
 
 const TMDB_PROXY = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tmdb-proxy`;
 const API_URL = `${TMDB_PROXY}/discover/movie?sort_by=popularity.desc&page=1`;
-const IMG_PATH = 'https://image.tmdb.org/t/p/w1280';
+const IMG_PATH = `${TMDB_PROXY}/img/t/p/w1280`;
 const SEARCH_API = `${TMDB_PROXY}/search/movie?query="`;
 const PLACEHOLDER_IMG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450"><rect fill="%231a1a2e" width="300" height="450"/><text x="50%" y="50%" fill="%23666" font-family="sans-serif" font-size="18" text-anchor="middle" dominant-baseline="middle">No Image</text></svg>';
 
