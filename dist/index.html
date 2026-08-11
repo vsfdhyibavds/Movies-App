@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movies App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script type="module" crossorigin src="/assets/index-Dnoq268s.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-Dyn3mPDX.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 class="logo">Genco's<span> Hub</span></h1>
+            <div class="header-actions">
+                <button id="watchlist-toggle" class="watchlist-btn">
+                    <i class="fas fa-bookmark"></i> Watchlist
+                </button>
+                <button id="theme-toggle" class="theme-btn">Toggle Theme</button>
+                <form id="form">
+                    <div id="autocomplete-list" class="autocomplete-items"></div>
+                    <input type="text" id="search" class="search" placeholder="Search movies...">
+                    <button type="submit"><i class="fas fa-search"></i></button>
+                </form>
+                <div id="auth-container" class="auth-container">
+                    <button id="auth-toggle" class="auth-btn">
+                        <i class="fas fa-user"></i> Sign In
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div id="auth-modal" class="auth-modal hidden">
+        <div class="auth-modal-content">
+            <div class="auth-tabs">
+                <button id="signin-tab" class="auth-tab active">Sign In</button>
+                <button id="signup-tab" class="auth-tab">Sign Up</button>
+            </div>
+
+            <div id="signin-form" class="auth-form active">
+                <h2>Sign In to Your Account</h2>
+                <input type="email" id="signin-email" placeholder="Email" class="auth-input">
+                <input type="password" id="signin-password" placeholder="Password" class="auth-input">
+                <button id="signin-btn" class="auth-submit-btn">Sign In</button>
+                <div id="signin-error" class="auth-error"></div>
+            </div>
+
+            <div id="signup-form" class="auth-form">
+                <h2>Create New Account</h2>
+                <input type="email" id="signup-email" placeholder="Email" class="auth-input">
+                <input type="password" id="signup-password" placeholder="Password (min 6 characters)" class="auth-input">
+                <input type="password" id="signup-confirm" placeholder="Confirm Password" class="auth-input">
+                <button id="signup-btn" class="auth-submit-btn">Sign Up</button>
+                <div id="signup-error" class="auth-error"></div>
+            </div>
+
+            <button id="close-auth" class="auth-close">&times;</button>
+        </div>
+    </div>
+
+    <main id="main">
+        <!-- Movies will be displayed here -->
+    </main>
+
+    <div id="watchlist-container" class="watchlist-container hidden">
+        <h2>Your Watch History</h2>
+        <div id="watch-history" class="watch-history">
+            <!-- Watch history will be displayed here -->
+        </div>
+
+        <h2>Your Watchlist</h2>
+        <div id="watchlist-movies" class="watchlist-movies">
+            <!-- Watchlist movies will be displayed here -->
+        </div>
+
+        <h2>Your Reviews</h2>
+        <div id="my-reviews" class="my-reviews">
+            <!-- User reviews will be displayed here -->
+        </div>
+    </div>
+
+    <div id="movie-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="movie-details">
+                <!-- Movie details will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Movies by Genco. Powered by TMDB API.</p>
+    </footer>
+
+</body>
+</html>
