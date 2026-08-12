@@ -1146,6 +1146,258 @@ body.light .avg-rating {
     color: #666;
 }
 
-body.light .review-date {
-    color: #999;
+/* Trailer Modal */
+.trailer-modal {
+    display: flex;
+    position: fixed;
+    z-index: 400;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.trailer-modal.hidden {
+    display: none;
+}
+
+.trailer-modal-content {
+    position: relative;
+    width: 90%;
+    max-width: 900px;
+    aspect-ratio: 16 / 9;
+    background-color: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.trailer-modal-content iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.trailer-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 32px;
+    cursor: pointer;
+    transition: color 0.3s;
+    z-index: 10;
+}
+
+.trailer-close:hover {
+    color: #e50914;
+}
+
+/* Detail Action Row */
+.detail-action-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.trailer-btn {
+    background-color: #e50914;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.trailer-btn:hover {
+    background-color: #f40612;
+    transform: scale(1.05);
+}
+
+/* Where to Watch */
+.watch-providers {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #2c2c44;
+}
+
+.watch-providers h3 {
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+}
+
+.provider-group {
+    margin-bottom: 15px;
+}
+
+.provider-group h4 {
+    font-size: 1rem;
+    color: #aaa;
+    margin-bottom: 10px;
+}
+
+.provider-logos {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.provider-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    width: 80px;
+    text-align: center;
+}
+
+.provider-item img {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.provider-item span {
+    font-size: 0.75rem;
+    color: #ccc;
+    line-height: 1.2;
+}
+
+/* Continue Watching Row */
+.content-row {
+    max-width: 1200px;
+    margin: 100px auto 0;
+    padding: 0 20px;
+}
+
+.content-row.hidden {
+    display: none;
+}
+
+.row-title {
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+    padding-left: 5px;
+}
+
+.row-scroll {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding-bottom: 15px;
+    scrollbar-width: thin;
+    scrollbar-color: #e50914 #1a1a2e;
+}
+
+.row-scroll::-webkit-scrollbar {
+    height: 8px;
+}
+
+.row-scroll::-webkit-scrollbar-track {
+    background: #1a1a2e;
+    border-radius: 4px;
+}
+
+.row-scroll::-webkit-scrollbar-thumb {
+    background: #e50914;
+    border-radius: 4px;
+}
+
+.continue-card {
+    flex: 0 0 200px;
+    cursor: pointer;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #1a1a2e;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s;
+}
+
+.continue-card:hover {
+    transform: scale(1.05);
+}
+
+.continue-card img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+}
+
+.continue-info {
+    padding: 10px;
+}
+
+.continue-info h4 {
+    font-size: 0.9rem;
+    margin: 0 0 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.continue-info p {
+    font-size: 0.8rem;
+    color: #e50914;
+    margin: 0;
+}
+
+/* Light theme for new features */
+body.light .watch-providers {
+    border-top-color: #e0e0e0;
+}
+
+body.light .provider-group h4 {
+    color: #666;
+}
+
+body.light .provider-item span {
+    color: #333;
+}
+
+body.light .content-row {
+    border-bottom: none;
+}
+
+body.light .continue-card {
+    background-color: #f0f0f0;
+}
+
+body.light .row-scroll {
+    scrollbar-color: #e50914 #f0f0f0;
+}
+
+body.light .row-scroll::-webkit-scrollbar-track {
+    background: #f0f0f0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .trailer-modal-content {
+        width: 95%;
+    }
+
+    .continue-card {
+        flex: 0 0 150px;
+    }
+
+    .continue-card img {
+        height: 225px;
+    }
+
+    .content-row {
+        margin-top: 90px;
+    }
 }

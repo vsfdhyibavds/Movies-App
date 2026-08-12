@@ -45,6 +45,11 @@ const movieDetails = document.getElementById('movie-details');
 const watchlistToggleBtn = document.getElementById('watchlist-toggle');
 const watchlistContainer = document.getElementById('watchlist-container');
 const themeToggleBtn = document.getElementById('theme-toggle');
+const trailerModal = document.getElementById('trailer-modal');
+const trailerFrame = document.getElementById('trailer-frame');
+const closeTrailerBtn = document.getElementById('close-trailer');
+const continueWatchingRow = document.getElementById('continue-watching-row');
+const continueWatchingContainer = document.getElementById('continue-watching');
 
 const authToggleBtn = document.getElementById('auth-toggle');
 const authModal = document.getElementById('auth-modal');
@@ -66,6 +71,7 @@ const authContainer = document.getElementById('auth-container');
 
 getMovies(API_URL);
 initializeAuth();
+loadContinueWatching();
 
 function showLoading() {
     main.innerHTML = '<div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Loading movies...</div>';
@@ -202,20 +208,48 @@ function clearSuggestions() {
     document.getElementById('autocomplete-list').innerHTML = '';
 }
 
+async function fetchMovieVideos(movieId) {
+    try {
+        const res = await fetch(`${TMDB_PROXY}/movie/${movieId}/videos`);
+        const data = await res.json();
+        const trailers = (data.results || []).filter(
+            v => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser')
+        );
+        return trailers.length > 0 ? trailers[0] : null;
+    } catch (err) {
+        console.error('Error fetching videos:', err);
+        return null;
+    }
+}
+
+async function fetchWatchProviders(movieId) {
+    try {
+        const res = await fetch(`${TMDB_PROXY}/movie/${movieId}/watch/providers`);
+        const data = await res.json();
+        return data.results || {};
+    } catch (err) {
+        console.error('Error fetching watch providers:', err);
+        return {};
+    }
+}
+
 async function showMovieDetails(movie) {
     const { id } = movie;
     const detailsUrl = `${TMDB_PROXY}/movie/${id}`;
 
     try {
-        const res = await fetch(detailsUrl);
-        const data = await res.json();
-        await displayMovieDetails(data);
+        const [detailsRes, trailer, providers] = await Promise.all([
+            fetch(detailsUrl).then(r => r.json()),
+            fetchMovieVideos(id),
+            fetchWatchProviders(id)
+        ]);
+        await displayMovieDetails(detailsRes, trailer, providers);
     } catch (err) {
         console.error('Error fetching movie details:', err);
     }
 }
 
-async function displayMovieDetails(movie) {
+async function displayMovieDetails(movie, trailer, providers) {
     const {
         title,
         poster_path,
@@ -239,6 +273,12 @@ async function displayMovieDetails(movie) {
     const safeHomepage = homepage ? escapeAttr(homepage) : '';
     const safeHomepageDisplay = homepage ? escapeHtml(homepage) : '';
 
+    const trailerBtnHtml = trailer
+        ? `<button class="trailer-btn" data-youtube-key="${escapeAttr(trailer.key)}"><i class="fas fa-play"></i> Watch Trailer</button>`
+        : '';
+
+    const providerHtml = renderWatchProviders(providers);
+
     movieDetails.innerHTML = `
         <div class="movie-detail-header">
             <img src="${getPosterUrl(poster_path)}" alt="${safeAlt}" class="movie-detail-poster">
@@ -251,15 +291,19 @@ async function displayMovieDetails(movie) {
                     ${(genres || []).map(genre => `<span class="genre">${escapeHtml(genre.name)}</span>`).join('')}
                 </div>
                 ${homepage ? `<p><strong>Website:</strong> <a href="${safeHomepage}" target="_blank" rel="noopener noreferrer">${safeHomepageDisplay}</a></p>` : ''}
-                <button class="watchlist-action-btn ${inWatchlist ? 'added' : ''}" data-movie-id="${id}">
-                    <i class="fas fa-bookmark"></i> ${inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
-                </button>
+                <div class="detail-action-row">
+                    <button class="watchlist-action-btn ${inWatchlist ? 'added' : ''}" data-movie-id="${id}">
+                        <i class="fas fa-bookmark"></i> ${inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                    </button>
+                    ${trailerBtnHtml}
+                </div>
             </div>
         </div>
         <div class="movie-detail-overview">
             <h3>Overview</h3>
             <p>${safeOverview}</p>
         </div>
+        ${providerHtml}
     `;
 
     const detailImg = movieDetails.querySelector('.movie-detail-poster');
@@ -270,6 +314,16 @@ async function displayMovieDetails(movie) {
         e.stopPropagation();
         await toggleWatchlist(movie, watchlistBtn);
     });
+
+    const trailerBtn = movieDetails.querySelector('.trailer-btn');
+    if (trailerBtn) {
+        trailerBtn.addEventListener('click', () => {
+            const key = trailerBtn.dataset.youtubeKey;
+            trailerFrame.src = `https://www.youtube.com/embed/${key}?autoplay=1&rel=0`;
+            trailerModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        });
+    }
 
     await renderReviewSection(movie);
 
@@ -418,12 +472,92 @@ closeBtn.addEventListener('click', () => {
     document.body.style.overflow = 'auto';
 });
 
+closeTrailerBtn.addEventListener('click', closeTrailer);
+
+window.addEventListener('click', (e) => {
+    if (e.target === trailerModal) closeTrailer();
+});
+
+function closeTrailer() {
+    trailerModal.classList.add('hidden');
+    trailerFrame.src = '';
+    document.body.style.overflow = 'auto';
+}
+
 window.addEventListener('click', (e) => {
     if(e.target === modal) {
         modal.style.display = 'none';
         document.body.style.overflow = 'auto';
     }
 });
+
+function renderWatchProviders(providers) {
+    if (!providers || !providers.US) return '';
+    const us = providers.US;
+    const sections = [];
+    if (us.flatrate && us.flatrate.length > 0) {
+        sections.push({
+            label: 'Stream',
+            items: us.flatrate
+        });
+    }
+    if (us.rent && us.rent.length > 0) {
+        sections.push({
+            label: 'Rent',
+            items: us.rent
+        });
+    }
+    if (us.buy && us.buy.length > 0) {
+        sections.push({
+            label: 'Buy',
+            items: us.buy
+        });
+    }
+    if (sections.length === 0) return '';
+
+    const html = sections.map(section => `
+        <div class="provider-group">
+            <h4>${section.label}</h4>
+            <div class="provider-logos">
+                ${section.items.map(p => `
+                    <div class="provider-item" title="${escapeAttr(p.provider_name)}">
+                        <img src="${IMG_PATH.replace('w1280', 'w92')}${p.logo_path}" alt="${escapeAttr(p.provider_name)}">
+                        <span>${escapeHtml(p.provider_name)}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+
+    return `<div class="watch-providers"><h3>Where to Watch</h3>${html}</div>`;
+}
+
+async function loadContinueWatching() {
+    const history = await getWatchHistory();
+    if (history.length === 0) {
+        continueWatchingRow.style.display = 'none';
+        return;
+    }
+    continueWatchingRow.style.display = 'block';
+    continueWatchingContainer.innerHTML = '';
+    history.slice(0, 10).forEach(item => {
+        const card = document.createElement('div');
+        card.classList.add('continue-card');
+        card.innerHTML = `
+            <img src="${getPosterUrl(item.poster_path)}" alt="${escapeAttr(item.title)}">
+            <div class="continue-info">
+                <h4>${escapeHtml(item.title)}</h4>
+                <p><i class="fas fa-play"></i> Resume</p>
+            </div>
+        `;
+        card.querySelector('img').addEventListener('error', function() { this.src = PLACEHOLDER_IMG; });
+        card.addEventListener('click', async () => {
+            const movie = { id: item.movie_id, title: item.title, poster_path: item.poster_path };
+            await showMovieDetails(movie);
+        });
+        continueWatchingContainer.appendChild(card);
+    });
+}
 
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme === 'light') {
